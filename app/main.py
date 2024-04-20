@@ -1,17 +1,7 @@
-import os
-
-from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
+
+from endpoints.nodes import router as nodes_router
 
 
 app = FastAPI()
-
-
-client = AsyncIOMotorClient(os.environ["MONGO_CONNECTION"])
-db = client.get_database("configurations")
-student_collection = db.get_collection("nodes")
-
-
-@app.get("/nodes")
-def get_node(path: str | None = None):
-    return {"Hello": "World"}
+app.include_router(nodes_router, prefix="/api/v1")
