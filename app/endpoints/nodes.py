@@ -47,6 +47,33 @@ async def get_node(node_id: str):
     return node if node else HTTPException(status_code=404, detail=f"Node {node_id} not found")
 
 
+@router.get(
+    "/nodes/{node_id}/children",
+    response_description="Get all children of a node",
+    response_model=NodeCollection,
+    response_model_by_alias=False
+)
+def get_children(node_id: str):
+    """
+    Get all children of a node by id.
+
+    :param node_id: The id of the node to get children of.
+    :return: A list of all children of the node or a failure message.
+    """
+    def _get_children(node_id):
+        return nodes_collection.find({"parent_id": node_id})
+
+    result = []
+    queue = []
+    queue.extend(_get_children(node_id))
+    while queue:
+        node = queue.pop(0)
+        result.append(node)
+        queue.extend(_get_children(node))
+
+    return NodeCollection(nodes=result)
+
+
 @router.post(
     "/nodes/",
     response_description="Add new node",
@@ -115,6 +142,6 @@ async def delete_node(node_id: str):
     delete_result = await nodes_collection.delete_one({"_id": ObjectId(node_id)})
 
     if delete_result.deleted_count:
-        return JSONResponse(status_code=204)
+        return JSONResponse("", status_code=204)
 
     return HTTPException(status_code=404, detail=f"Node {node_id} not found")
