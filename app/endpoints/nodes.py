@@ -71,7 +71,7 @@ def get_children(node_id: str):
         result.append(node)
         queue.extend(_get_children(node))
 
-    return NodeCollection(nodes=result)
+    return NodeCollection(nodes=result  )
 
 
 @router.post(
