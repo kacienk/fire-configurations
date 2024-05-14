@@ -53,25 +53,28 @@ async def get_node(node_id: str):
     response_model=NodeCollection,
     response_model_by_alias=False
 )
-def get_children(node_id: str):
+async def get_children(node_id: str):
     """
     Get all children of a node by id.
 
     :param node_id: The id of the node to get children of.
     :return: A list of all children of the node or a failure message.
     """
-    def _get_children(node_id):
-        return nodes_collection.find({"parent_id": node_id})
+
+    async def _get_children(inner_node_id):
+        return nodes_collection.find({"parent_id": inner_node_id}).to_list(length=None)
 
     result = []
     queue = []
-    queue.extend(_get_children(node_id))
+    children = await _get_children(node_id)
+    queue.extend(await children)
     while queue:
         node = queue.pop(0)
         result.append(node)
-        queue.extend(_get_children(node))
+        children = await _get_children(str(node["_id"]))
+        queue.extend(await children)
 
-    return NodeCollection(nodes=result  )
+    return NodeCollection(nodes=result)
 
 
 @router.post(
@@ -88,6 +91,7 @@ async def create_node(node: NodeModel = Body(...)):
     :param node: The node to be created.
     :return: The created node or failure message.
     """
+    print(node)
 
     new_node = await nodes_collection.insert_one(node.model_dump(by_alias=True, exclude={"id"}))
     created_node = await nodes_collection.find_one({"_id": new_node.inserted_id})

@@ -18,7 +18,7 @@ class NodeModel(BaseModel):
 
     id: PyObjectId = Field(alias="_id", default_factory=lambda: uuid4().hex)
     name: str
-    parent_id: int | None = None
+    parent_id: str | None = None
     node_type: NodeType
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
